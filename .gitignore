@@ -1,0 +1,6 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+# https://www.processmacro.org/download.html
+scripts/process_function.R
