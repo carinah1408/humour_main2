@@ -246,15 +246,8 @@ support_out_mad # 15 outliers detected (extremely high)
 outliers_support <- dplyr::filter(main2_sub, support >= "6.4478")
 outliers_support #IDs: 35, 42, 71, 115, 138, 151, 165, 263, 289, 293, 301, 346, 358, 374, 429: 
 # 9 out of 15 right affiliated, 2 NA, 2 centre, 2 left, 9 men, 6 in exp2, 6 in exp1, 3 in control
-# most striking: 13 out of 15 selfcat of 7, one of 6, and one of 4.5
-
-support_affiliation <- main2_sub%>% select(affiliation, support) %>% plot()
-
-selfcat_affiliation <- main2_sub %>%
-  dplyr::group_by(affiliation) %>%
-  summarise(selfcat_mean = mean(selfcat),
-            selfcat_sd = sd(selfcat))
-selfcat_affiliation # left: M = 2.26, SD = 1.32; Centre: M = 3.62, SD = 1.47; Right: M = 4.67, SD = 1.54; NA: M = 3.54, SD = 1.35
+# most important: high self-categorisation as possible explanation 
+# (13 out of 15 have a selfcat score of 7, one of 6, and one of 4.5)
 
 ## comparison variables across conditions----
 
@@ -286,7 +279,35 @@ summary(support.anova) # n.s.
 
 leveneTest(support ~ condition, data = main2_sub) # n.s.
 
-support_condition <- main2_sub%>% select(condition, support) %>% plot()
+support_condition <- main2_sub%>% select(condition, support) %>% plot() # saddest graph
+
+### categorical relationships
+
+selfcat_affiliation <- main2_sub %>%
+  dplyr::group_by(affiliation) %>%
+  summarise(selfcat_mean = mean(selfcat),
+            selfcat_sd = sd(selfcat))
+selfcat_affiliation # left: M = 2.26, SD = 1.32; Centre: M = 3.62, SD = 1.47; Right: M = 4.67, SD = 1.54; NA: M = 3.54, SD = 1.35
+
+support_affiliation <- main2_sub%>% select(affiliation, support) %>% plot()
+
+support_affiliation_anova <- aov(support ~ affiliation, data = main2_sub)
+summary(support_affiliation_anova)
+TukeyHSD(support_affiliation_anova) # all despite one (NA/ centre) contrasts sign., biggest diff. between left/right
+
+### continous relationships
+## intercorrelations----
+
+main2_cor <-main2_sub %>%
+  select(selfcat, orgaeff, stereo, legit, support) %>%
+  round(., 2)
+
+library(Hmisc)
+rcorr(as.matrix(main2_cor)) %>%
+  print()
+
+library(apaTables)
+apa.cor.table(main2_cor,filename = "Correlation_main2.doc",table.number = 1,show.conf.interval = F)
 
 ## multivariate outliers----
 
