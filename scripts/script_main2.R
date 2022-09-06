@@ -117,7 +117,66 @@ eff_2.pairwise.wilcox.test <- pairwise.wilcox.test(main2_sub$eff_check2, main2_s
                                                    p.adjust.method = "BH", conf.int = TRUE) # pairwise comparison (non-parametric)
 eff_2.pairwise.wilcox.test # same as above
 
+### reliability & making new variables----
 
+## self-categorization ----
 
+library(performance) # inter-item correlation
 
+interitem_selfcat <- main2_sub[, c("selfcat_1", "selfcat_2")]
+item_intercor(interitem_selfcat) # inter-item correlation of 0.93
+
+main2_sub <- main2_sub %>% # create new variable "selfcat"
+  mutate(
+    selfcat = (selfcat_1 + selfcat_2)/2
+  )
+
+## organizational efficacy ----
+
+interitem_orgaeff <- main2_sub[, c("orgaeff_1", "orgaeff_2")]
+item_intercor(interitem_orgaeff) # inter-item correlation of 0.91
+
+main2_sub <- main2_sub %>% # create new variable "selfcat"
+  mutate(
+    orgaeff = (orgaeff_1 + orgaeff_2)/2
+  )
+
+## competence stereotype ----
+
+interitem_stereo <- main2_sub[, c("stereo_1", "stereo_2")]
+item_intercor(interitem_stereo) # inter-item correlation of 0.81
+
+main2_sub <- main2_sub %>% # create new variable "selfcat"
+  mutate(
+    stereo = (stereo_1 + stereo_2)/2
+  )
+
+## legitimacy (reliablity, validty and variable generation) ----
+
+library(psych) # cronbach's alpha
+
+key <- list(
+  legit = c("legit_1", "legit_2", "legit_3")
+)
+
+score.items(key, main2_sub) # reliability of 0.88
+
+main2_sub <- main2_sub %>% # create new variable "selfcat"
+  mutate(
+    legit = (legit_1 + legit_2 + legit_3)/3
+  )
+
+library(lavaan) # validity
+library(semPlot)
+library(lm.beta)
+
+legit.cfa <- 'legit.cfa =~ legit_1 + legit_2 + legit_3'
+cfa_legit.sem <- sem(legit.cfa, data = main2_sub)
+lavaan::summary(cfa_legit.sem, standardized = TRUE, fit.measures = TRUE) 
+# # model is saturated (sign chi-square, RMSEA = 0, CFI = 1)
+# the adequacy of saturated models can be tested by experimentally targeting it, i.e., if its predictions match the observed 
+# differences (or lack thereof) of the parameter estimates, then the model may be valid 
+# (https://stats.stackexchange.com/questions/283/what-is-a-saturated-model#:~:text=If%20a%20model%20is%20saturated,that%20the%20model%20is%20valid.)
+# --> can we observe differences in predictions based on condition (i.e., theoretically, individuals in control group should rate the
+# the group as legitimate, whereas individuals in the exp conditions should not/ to a lesser degree)
 
