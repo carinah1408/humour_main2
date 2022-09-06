@@ -180,3 +180,121 @@ lavaan::summary(cfa_legit.sem, standardized = TRUE, fit.measures = TRUE)
 # --> can we observe differences in predictions based on condition (i.e., theoretically, individuals in control group should rate the
 # the group as legitimate, whereas individuals in the exp conditions should not/ to a lesser degree)
 
+### descriptive statistics----
+
+main2_sub %>%
+  select(selfcat, orgaeff, stereo, legit, support) %>%
+  psych::describe() %>%
+  as_tibble(rownames="rowname")  %>%
+  print()
+
+# selfcat: negative kurtosis but within boundaries, slight positive skew; orgaeff, stereo, legit: negative kurtosis but within boundaries; 
+# support: positive skew --> rejection of support, measures in further analyses: bootstrap against violations to normality
+
+summary_descriptives <- main2_sub %>%
+  dplyr::group_by(condition) %>%
+  summarise(
+    selfcat_min = min(selfcat),
+    selfcat_max = max(selfcat),
+    selfcat_mean = mean(selfcat),
+    selfcat_sd = sd(selfcat),
+    orgaeff_min = min(orgaeff),
+    orgaeff_max = max(orgaeff),
+    orgaeff_mean = mean(orgaeff),
+    orgaeff_sd = sd(orgaeff),
+    stereo_min = min(stereo),
+    stereo_max = max(stereo),
+    stereo_mean = mean(stereo),
+    stereo_sd = sd(stereo),
+    legit_min = min(legit),
+    legit_max = max(legit),
+    legit_mean = mean(legit),
+    legit_sd = sd(legit),
+    support_min = min(support),
+    support_max = max(support),
+    support_mean = mean(support),
+    support_sd = sd(support))
+summary
+
+## univariate outliers inspection by variable----
+
+# selfcat
+selfcat_out <- main2_sub$selfcat
+selfcat_out_mad <- Routliers::outliers_mad(x=selfcat_out)
+selfcat_out_mad # no outliers detected
+
+# orgaeff
+orgaeff_out <- main2_sub$orgaeff
+orgaeff_out_mad <- Routliers::outliers_mad(x=orgaeff_out)
+orgaeff_out_mad # no outliers detected
+
+# stereo
+stereo_out <- main2_sub$stereo
+stereo_out_mad <- Routliers::outliers_mad(x=stereo_out)
+stereo_out_mad # no outliers detected
+
+# legit
+legit_out <- main2_sub$legit
+legit_out_mad <- Routliers::outliers_mad(x=legit_out)
+legit_out_mad # no outliers detected
+
+# support
+support_out <- main2_sub$support
+support_out_mad <- Routliers::outliers_mad(x=support_out)
+support_out_mad # 15 outliers detected (extremely high)
+
+outliers_support <- dplyr::filter(main2_sub, support >= "6.4478")
+outliers_support #IDs: 35, 42, 71, 115, 138, 151, 165, 263, 289, 293, 301, 346, 358, 374, 429: 
+# 9 out of 15 right affiliated, 2 NA, 2 centre, 2 left, 9 men, 6 in exp2, 6 in exp1, 3 in control
+# most striking: 13 out of 15 selfcat of 7, one of 6, and one of 4.5
+
+support_affiliation <- main2_sub%>% select(affiliation, support) %>% plot()
+
+selfcat_affiliation <- main2_sub %>%
+  dplyr::group_by(affiliation) %>%
+  summarise(selfcat_mean = mean(selfcat),
+            selfcat_sd = sd(selfcat))
+selfcat_affiliation # left: M = 2.26, SD = 1.32; Centre: M = 3.62, SD = 1.47; Right: M = 4.67, SD = 1.54; NA: M = 3.54, SD = 1.35
+
+## comparison variables across conditions----
+
+orgaeff.anova <- aov(orgaeff ~ condition, data = main2_sub) # sign.
+summary(orgaeff.anova)
+TukeyHSD(orgaeff.anova) # sign. between exp and control but not between exp
+
+leveneTest(orgaeff ~ condition, data = main2_sub) # n.s.
+
+orgaeff_condition <- main2_sub%>% select(condition, orgaeff) %>% plot()
+
+stereo.anova <- aov(stereo ~ condition, data = main2_sub) # sign.
+summary(stereo.anova)
+TukeyHSD(stereo.anova) # sign. between exp and control but not between exp
+
+leveneTest(stereo ~ condition, data = main2_sub) # n.s.
+
+stereo_condition <- main2_sub%>% select(condition, stereo) %>% plot()
+
+legit.anova <- aov(legit ~ condition, data = main2_sub) # n.s.
+summary(legit.anova)
+
+leveneTest(legit ~ condition, data = main2_sub) # n.s.
+
+legit_condition <- main2_sub%>% select(condition, legit) %>% plot()
+
+support.anova <- aov(support ~ condition, data = main2_sub) # n.s.
+summary(support.anova) # n.s.
+
+leveneTest(support ~ condition, data = main2_sub) # n.s.
+
+support_condition <- main2_sub%>% select(condition, support) %>% plot()
+
+## multivariate outliers----
+
+# support/selfcat
+support <- main2_sub$support
+selfcat <- main2_sub$selfcat
+support_selfcat_mcd <- Routliers::outliers_mcd(x = data.frame(support, selfcat))
+support_selfcat_mcd # 158 outliers detected
+Routliers::plot_outliers_mcd(support_selfcat_mcd, x = data.frame(support, selfcat))
+
+
