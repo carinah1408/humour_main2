@@ -188,6 +188,13 @@ main2_sub %>%
   as_tibble(rownames="rowname")  %>%
   print()
 
+main2_sub_dsbycond <- main2_sub %>%
+  select(condition, selfcat, orgaeff, stereo, legit, support)
+
+library(vtable)
+
+st(main2_sub_dsbycond, group = 'condition', group.test = TRUE)
+
 # selfcat: negative kurtosis but within boundaries, slight positive skew; orgaeff, stereo, legit: negative kurtosis but within boundaries; 
 # support: positive skew --> rejection of support, measures in further analyses: bootstrap against violations to normality
 
@@ -279,7 +286,7 @@ summary(support.anova) # n.s.
 
 leveneTest(support ~ condition, data = main2_sub) # n.s.
 
-support_condition <- main2_sub%>% select(condition, support) %>% plot() # saddest graph
+support_condition <- main2_sub%>% select(condition, support) %>% plot() 
 
 ### categorical relationships
 
@@ -309,13 +316,78 @@ rcorr(as.matrix(main2_cor)) %>%
 library(apaTables)
 apa.cor.table(main2_cor,filename = "Correlation_main2.doc",table.number = 1,show.conf.interval = F)
 
+main2_sub_numcond <- main2_sub %>%
+  mutate(condition = as.numeric(condition))
+
+# correlation with condition
+
+corr_cond_orgaeff <- cor.test(x=main2_sub_numcond$condition, y=main2_sub_numcond$orgaeff, method = 'spearman')
+corr_cond_orgaeff # r = -.40, p < .001 --> experimental conditions (1,2) are associated with lower organisational efficacy
+
+corr_cond_stereo <- cor.test(x=main2_sub_numcond$condition, y=main2_sub_numcond$stereo, method = 'spearman')
+corr_cond_stereo # r = - .29, p < .001 --> experimental conditions (1,2) are associated with lower competence
+
+corr_cond_legit <- cor.test(x=main2_sub_numcond$condition, y=main2_sub_numcond$legit, method = 'spearman')
+corr_cond_legit # r = .00, n.s.
+
+corr_cond_support <- cor.test(x=main2_sub_numcond$condition, y=main2_sub_numcond$support, method = 'spearman')
+corr_cond_support # r = .07, n.s.
+
+### filter  and compare participants that were relatively close to guessing the purpose of the experiment----
+
+main2_sub <- main2_sub %>% #new "condition" = "purpose" (= purpose guessed) vs "no purpose" (purposed not guessed)
+  mutate(purpose = ifelse(id ==  "2"| id == "9"| id == "81"| id == "82" | id == "97"| id == "210"| id =="218"|
+                            id == "249"| id == "260"| id == "286"| id == "291"| id =="293"| id == "301"| id == "311"| 
+                            id == "315"|id == "347" |id == "353" |id == "357"|id == "359"|id == "380" 
+                            |id == "400", 1, 0)) 
+main2_sub %>% 
+  group_by(purpose) %>%
+  summarise(mean = mean(support), sd = sd(support)) # not guessed: M = 2.67, SD = 1.74; guessed: M = 2.90, SD = 1.87
+
+t.test(main2_sub$support ~ main2_sub$purpose, var.equal = FALSE) # n.s.
+
 ## multivariate outliers----
 
 # support/selfcat
 support <- main2_sub$support
 selfcat <- main2_sub$selfcat
-support_selfcat_mcd <- Routliers::outliers_mcd(x = data.frame(support, selfcat))
+support_selfcat_mcd <- Routliers::outliers_mcd(x = data.frame(selfcat, support))
 support_selfcat_mcd # 158 outliers detected
-Routliers::plot_outliers_mcd(support_selfcat_mcd, x = data.frame(support, selfcat))
+Routliers::plot_outliers_mcd(support_selfcat_mcd, x = data.frame(selfcat, support))
 
+outliers_support_selfcat <- support_selfcat_mcd$outliers_pos
+outliers_support_selfcat 
 
+legit <- main2_sub$legit
+legit_support_mcd <- Routliers::outliers_mcd(x = data.frame(legit, support))
+legit_support_mcd # 157 outliers found
+Routliers::plot_outliers_mcd(legit_support_mcd, x = data.frame(legit, support))
+
+outliers_legit_support <- legit_support_mcd$outliers_pos
+outliers_legit_support
+
+# above outliers overlap mostly, those that drive support from perceiving the group as legitimate are also those that drive the support based on identifying with the group 
+
+efficacy <- main2_sub$orgaeff
+legit_orgaeff_mcd <- Routliers::outliers_mcd(x = data.frame(efficacy, legit))
+legit_orgaeff_mcd # 4 outliers
+Routliers::plot_outliers_mcd(legit_orgaeff_mcd, x = data.frame(efficacy, legit)) # no substiantial difference in slopes
+
+stereo <- main2_sub$stereo
+legit_stereo_mcd <- Routliers::outliers_mcd(x = data.frame(stereo, legit))
+legit_stereo_mcd # 7 outliers 
+Routliers::plot_outliers_mcd(legit_stereo_mcd, x = data.frame(stereo, legit)) # no substantial difference in slopes
+
+support_orgaeff_mcd <- Routliers::outliers_mcd(x = data.frame(efficacy, support))
+support_orgaeff_mcd # 158 outliers
+Routliers::plot_outliers_mcd(support_orgaeff_mcd, x = data.frame(efficacy, support)) 
+
+outliers_support_orgaeff <- support_orgaeff_mcd$outliers_pos
+outliers_support_orgaeff # overlaps with outliers above --> those that drive support based on perceived efficacy, are also those that drive support from perceiving the group as legitimate and those that drive the support based on identifying with the group 
+
+support_stereo_mcd <- Routliers::outliers_mcd(x = data.frame(stereo, support))
+support_stereo_mcd # 158 outliers
+Routliers::plot_outliers_mcd(support_stereo_mcd, x = data.frame(stereo, support)) 
+
+outliers_support_stereo <- support_stereo_mcd$outliers_pos
+outliers_support_stereo # overlaps with outliers above --> those that drive support based on perceived competence, are also those that drive support from perceiving the group as legitimate and those that drive the support based on identifying with the group 
