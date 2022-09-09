@@ -425,26 +425,27 @@ helmert = matrix(c(-2/3, 1/3, 1/3, 0, -.5, .5), ncol = 2)
 helmert
 
 main2_sub_numfact <- main2_sub_numcond %>%
-  mutate(condition = as.factor(condition)) # contrasts requires cond to be a factor 
+  mutate(condition = as.factor(condition)) # contrasts requires condition to be a factor 
 
 contrasts(main2_sub_numfact$condition) = helmert
 
 # regression 1 (orgaeff ~ condition)
-med_orgaeff1 <- lm(orgaeff ~ condition, data = main2_sub_numfact)
-summary(med_orgaeff1)
+orgaeff_cond <- lm(orgaeff ~ condition, data = main2_sub_numfact)
+summary(orgaeff_cond)
+# deviation from pre-registration: no scatterplots due to categorical data (condition)
 
-med_orgaeff1_cooksd <- cooks.distance(med_orgaeff1)
+orgaeff_cond_cooksd <- cooks.distance(orgaeff_cond)
 
-plot(med_orgaeff1_cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance") +  # plot cook's distance
-  abline(h = 4*mean(med_orgaeff1_cooksd, na.rm=T), col="red") + # add cutoff line
-  text(x=1:length(med_orgaeff1_cooksd)+1, y=med_orgaeff1_cooksd, labels=ifelse(med_orgaeff1_cooksd>4*mean(med_orgaeff1_cooksd, na.rm=T),names(med_orgaeff1_cooksd),""), col="red")  # add labels
+plot(orgaeff_cond_cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance") +  # plot cook's distance
+  abline(h = 4*mean(orgaeff_cond_cooksd, na.rm=T), col="red") + # add cutoff line
+  text(x=1:length(orgaeff_cond_cooksd)+1, y=orgaeff_cond_cooksd, labels=ifelse(orgaeff_cond_cooksd>4*mean(orgaeff_cond_cooksd, na.rm=T),names(orgaeff_cond_cooksd),""), col="red")  # add labels
 
-# => 14 outliers: ID 6, 58, 71, 138, 150, 184, 279, 294, 301, 328, 337, 371, 428, 429 (those in control condition = low orgaeff; those in exp1 and exp2 = high orgaeff)
+# => 14 outliers: ID 6, 58, 71, 138, 150, 184, 279, 294, 301, 328, 337, 371, 428, 429 
 
-influential <- as.numeric(names(med_orgaeff1_cooksd)[med_orgaeff1_cooksd > 4*mean(med_orgaeff1_cooksd, na.rm=T)])  # influential row numbers
-head(main2_sub_numfact[influential, ], n = 20)  # influential observations.
+influential <- as.numeric(names(orgaeff_cond_cooksd)[orgaeff_cond_cooksd > 4*mean(orgaeff_cond_cooksd, na.rm=T)])  # influential row numbers
+head(main2_sub_numfact[influential, ], n = 20)  # identifying outliers 
 
-car::outlierTest(med_orgaeff1) # most extreme outlier = ID 58 (condition = control, left, male, 52y, scores of 1 throughout)
+car::outlierTest(orgaeff_cond) # most extreme outlier = ID 58 (condition = control, left, male, 52y, scores of "1" throughout)
 
 # run again without outliers 
 
@@ -453,17 +454,81 @@ noutliers1 <- c("6", "58", "71", "138", "150", "184", "279", "294", "301", "328"
 main2_sub_numfact_noutliers1 <- main2_sub_numfact %>%
   filter(!id %in% noutliers1)
 
-med_orgaeff1_nout <- lm(orgaeff ~ condition, data = main2_sub_numfact_noutliers1)
-summary(med_orgaeff1_nout) # no significant or valence changes: cond1: b = -1.34, p < .001; cond2: b = -.13, p = .35
+orgaeff_cond_nout <- lm(orgaeff ~ condition, data = main2_sub_numfact_noutliers1)
+summary(orgaeff_cond_nout) # no significant or valence changes: cond1: b = -1.34, p < .001; cond2: b = -.13, p = .35
 
 # robust regression 1
 
 library(robustbase)
-med_orgaeff_rob1 <- lmrob(orgaeff ~ condition, data = main2_sub_numfact)
-summary(med_orgaeff_rob1) # no significant or valence changes: cond1: b = -1.32, p < .001; cond2: b = -.13, p = .42
-confint(med_orgaeff_rob1) # cond1: CI[-1.57; -1.07]; cond2: CI[-.45; .19]
+orgaeff_cond_rob <- lmrob(orgaeff ~ condition, data = main2_sub_numfact)
+summary(orgaeff_cond_rob) # no significant or valence changes: cond1: b = -1.32, p < .001; cond2: b = -.13, p = .42
+confint(orgaeff_cond_rob) # cond1: CI[-1.57; -1.07]; cond2: CI[-.45; .19]
 
 # regression 2 (legit ~ condition + orgaeff)
 
+legit_cond_orgaeff <- lm(legit ~ condition + orgaeff, data = main2_sub_numfact)
+summary(legit_cond_orgaeff)
+
+legit_cond_orgaeff_cooksd <- cooks.distance(legit_cond_orgaeff)
+
+plot(legit_cond_orgaeff_cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance") +  # plot cook's distance
+  abline(h = 4*mean(legit_cond_orgaeff_cooksd, na.rm=T), col="red") + # add cutoff line
+  text(x=1:length(legit_cond_orgaeff_cooksd)+1, y=legit_cond_orgaeff_cooksd, labels=ifelse(legit_cond_orgaeff_cooksd>4*mean(legit_cond_orgaeff_cooksd, na.rm=T),names(legit_cond_orgaeff_cooksd),""), col="red")  # add labels
+
+influential <- as.numeric(names(legit_cond_orgaeff_cooksd)[legit_cond_orgaeff_cooksd > 4*mean(legit_cond_orgaeff_cooksd, na.rm=T)])  # influential row numbers
+head(main2_sub_numfact[influential, ], n = 30)  # identifying outliers 
+
+# => 25 outliers: ID 5, 20, 24, 28, 47, 50, 91, 103, 141, 144, 165,170, 201, 205, 206, 269, 277, 294, 299, 306, 330,  378, 382, 387, 389 
+
+car::outlierTest(legit_cond_orgaeff) # 165 most extreme outlier (man, 56y, condtion: exp1, right, low orgaeff but high legit) 
+
+# run again without outliers 
+
+noutliers2 <- c("5", "20", "24", "28", "47", "50", "91", "103", "141", "144", "165", "170", "201", "205", "206", "269", "277", "294", "299", "306", "330", "378", "382", "387", "389")
+
+main2_sub_numfact_noutliers2 <- main2_sub_numfact %>%
+  filter(!id %in% noutliers2)
+
+legit_cond_orgaeff_nout <- lm(legit ~ condition + orgaeff, data = main2_sub_numfact_noutliers2)
+summary(legit_cond_orgaeff_nout) # no significant or valence changes: cond1: b = .67, p < .001; cond2: b = .42, p < .001; orgaeff: b = .63, p < .001
+
+# robust regression 2
+
+legit_cond_orgaeff_rob <- lmrob(legit ~ condition + orgaeff, data = main2_sub_numfact)
+summary(legit_cond_orgaeff_rob) # no significant or valence changes: cond1: b = .63, p < .001; cond2: b = .35, p = .01; orgaeff: b = .60, p < .001
+confint(legit_cond_orgaeff_rob) # cond1: CI[.36; .91]; cond2: CI[.08; .62]; orgaeff: CI[.50; .71]
+
 # regression 3 (support ~ condition + orgaeff + legit)
+
+support_cond_orgaeff_legit <- lm(support ~ condition + orgaeff + legit, data = main2_sub_numfact)
+summary(support_cond_orgaeff_legit)
+
+support_cond_orgaeff_legit_cooksd <- cooks.distance(support_cond_orgaeff_legit)
+
+plot(support_cond_orgaeff_legit_cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance") +  # plot cook's distance
+  abline(h = 4*mean(support_cond_orgaeff_legit_cooksd, na.rm=T), col="red") + # add cutoff line
+  text(x=1:length(support_cond_orgaeff_legit_cooksd)+1, y=support_cond_orgaeff_legit_cooksd, labels=ifelse(support_cond_orgaeff_legit_cooksd>4*mean(support_cond_orgaeff_legit_cooksd, na.rm=T),names(support_cond_orgaeff_legit_cooksd),""), col="red")  # add labels
+
+influential <- as.numeric(names(support_cond_orgaeff_legit_cooksd)[support_cond_orgaeff_legit_cooksd > 4*mean(support_cond_orgaeff_legit_cooksd, na.rm=T)])  # influential row numbers
+head(main2_sub_numfact[influential, ], n = 30)  # identifying outliers 
+
+# => 17 outliers: ID 30, 35, 58, 71, 101, 108, 154, 165, 184, 237, 300, 304, 346, 358, 374, 376, 395 
+
+car::outlierTest(support_cond_orgaeff_legit) # 184 most extreme outlier (man, 45y, condtion: control, centre, high scores throughout but only 1 on support)
+
+# run again without outliers 
+
+noutliers3 <- c("30", "35", "58", "71", "101", "108", "154", "165", "184", "237", "300", "304", "346", "358", "374", "376", "395")
+
+main2_sub_numfact_noutliers3 <- main2_sub_numfact %>%
+  filter(!id %in% noutliers3)
+
+support_cond_orgaeff_legit_nout <- lm(support ~ condition + orgaeff + legit, data = main2_sub_numfact_noutliers3)
+summary(support_cond_orgaeff_legit_nout) # condition2 turns negative but stays n.s.: cond1: b = .43, p = .00; cond2: b = -.03, p = .80; orgaeff: b = .17, p = .00; legit: b = .85, p < .001
+
+# robust regression 3
+
+support_cond_orgaeff_legit_rob <- lmrob(support ~ condition + orgaeff + legit, data = main2_sub_numfact)
+summary(support_cond_orgaeff_legit_rob) # condition2 turns negative but stays n.s.: cond1: b = .45, p = .00; cond2: b = -.02, p = .87; orgaeff: b = .15, p = .02; legit: b = .85, p < .001
+confint(support_cond_orgaeff_legit_rob) # cond1: CI[.16; .75]; cond2: CI[-.31; .26]; orgaeff: CI[.03;.27]; legit: CI[.74; .96]
 
