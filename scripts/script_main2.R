@@ -532,3 +532,14 @@ support_cond_orgaeff_legit_rob <- lmrob(support ~ condition + orgaeff + legit, d
 summary(support_cond_orgaeff_legit_rob) # condition2 turns negative but stays n.s.: cond1: b = .45, p = .00; cond2: b = -.02, p = .87; orgaeff: b = .15, p = .02; legit: b = .85, p < .001
 confint(support_cond_orgaeff_legit_rob) # cond1: CI[.16; .75]; cond2: CI[-.31; .26]; orgaeff: CI[.03;.27]; legit: CI[.74; .96]
 
+# overall 51 outliers (5 overlapp across vectors)
+intersect(noutliers1, noutliers2) # 294
+intersect(noutliers1, noutliers3) # 58, 71, 184
+intersect(noutliers2, noutliers3) # 165
+
+## moderation analysis (center = 1: mean-centering all mediators and moderator)
+
+mod_orgaeff <- process (data=main2_sub_numcond,y="support",x="condition",m= c("orgaeff", "legit"),w="selfcat",modelbt = 1, mcx = 3, center = 1,model=89, boot = 10000, plot=1, seed=09922)
+
+
+
