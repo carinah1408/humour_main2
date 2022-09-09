@@ -390,4 +390,80 @@ support_stereo_mcd # 158 outliers
 Routliers::plot_outliers_mcd(support_stereo_mcd, x = data.frame(stereo, support)) 
 
 outliers_support_stereo <- support_stereo_mcd$outliers_pos
-outliers_support_stereo # overlaps with outliers above --> those that drive support based on perceived competence, are also those that drive support from perceiving the group as legitimate and those that drive the support based on identifying with the group 
+outliers_support_stereo # overlaps with outliers above --> those that drive support based on perceived competence, are also those that drive support from perceiving the group as legitimate and those that drive the support based on identifying with the group
+
+### import process function----
+
+source("scripts/process_function.R")
+
+## mediation analyses (option mcx = 3 automatic Helmert contrast coding; modelbt = 1 robust measures)
+
+# orgaeff = M1
+
+med_orgaeff <- process(data = main2_sub_numcond, y = "support", x = "condition", m = c("orgaeff", "legit"), modelbt =1, mcx = 3, total = 1, model = 6, boot = 10000, seed = 09922) 
+
+# outlier and assumption checks of med_orgaeff
+
+# Outlier treatment: "First, we will recreate the underlying regressions and inspect each regression for outliers. 
+# We will then compare the regressions running them each with and without found outliers. This is to establish whether 
+# there are substantial changes between regressions (i.e., changes in significance level and/ or valence) as well as 
+# to establish the extent to which – if at all – outliers are influential. We will then, however, compare robust 
+# regressions with the PROCESS OLS regressions . If the regressions do not deviate substantially (see above) we 
+# take that the PROCESS OLS regressions are robust against potential outliers."
+
+# Model assumptions: "In the analyses, we will apply robust measures (bootstrap) that can treat and prevent potential 
+# violations against normality, homoscedasticity, and homogeneity of the variables. We will use scatterplots of the 
+# individual regression relationships (see above; reconstruction of regression) to investigate linearity." 
+
+# preparing variables: Helmert coding manually
+
+d1<-(main2_sub_numcond$condition==1)*(-2/3)+(main2_sub_numcond$condition > 1)*(1/3)
+d2<-(main2_sub_numcond$condition==2)*(-1/2)+(main2_sub_numcond$condition==3)*(1/2)
+main2_sub_numcond <-data.frame(main2_sub_numcond,d1,d2)
+
+helmert = matrix(c(-2/3, 1/3, 1/3, 0, -.5, .5), ncol = 2)
+helmert
+
+main2_sub_numfact <- main2_sub_numcond %>%
+  mutate(condition = as.factor(condition)) # contrasts requires cond to be a factor 
+
+contrasts(main2_sub_numfact$condition) = helmert
+
+# regression 1 (orgaeff ~ condition)
+med_orgaeff1 <- lm(orgaeff ~ condition, data = main2_sub_numfact)
+summary(med_orgaeff1)
+
+med_orgaeff1_cooksd <- cooks.distance(med_orgaeff1)
+
+plot(med_orgaeff1_cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance") +  # plot cook's distance
+  abline(h = 4*mean(med_orgaeff1_cooksd, na.rm=T), col="red") + # add cutoff line
+  text(x=1:length(med_orgaeff1_cooksd)+1, y=med_orgaeff1_cooksd, labels=ifelse(med_orgaeff1_cooksd>4*mean(med_orgaeff1_cooksd, na.rm=T),names(med_orgaeff1_cooksd),""), col="red")  # add labels
+
+# => 14 outliers: ID 6, 58, 71, 138, 150, 184, 279, 294, 301, 328, 337, 371, 428, 429 (those in control condition = low orgaeff; those in exp1 and exp2 = high orgaeff)
+
+influential <- as.numeric(names(med_orgaeff1_cooksd)[med_orgaeff1_cooksd > 4*mean(med_orgaeff1_cooksd, na.rm=T)])  # influential row numbers
+head(main2_sub_numfact[influential, ], n = 20)  # influential observations.
+
+car::outlierTest(med_orgaeff1) # most extreme outlier = ID 58 (condition = control, left, male, 52y, scores of 1 throughout)
+
+# run again without outliers 
+
+noutliers1 <- c("6", "58", "71", "138", "150", "184", "279", "294", "301", "328", "337", "371", "428", "429")
+
+main2_sub_numfact_noutliers1 <- main2_sub_numfact %>%
+  filter(!id %in% noutliers1)
+
+med_orgaeff1_nout <- lm(orgaeff ~ condition, data = main2_sub_numfact_noutliers1)
+summary(med_orgaeff1_nout) # no significant or valence changes: cond1: b = -1.34, p < .001; cond2: b = -.13, p = .35
+
+# robust regression 1
+
+library(robustbase)
+med_orgaeff_rob1 <- lmrob(orgaeff ~ condition, data = main2_sub_numfact)
+summary(med_orgaeff_rob1) # no significant or valence changes: cond1: b = -1.32, p < .001; cond2: b = -.13, p = .42
+confint(med_orgaeff_rob1) # cond1: CI[-1.57; -1.07]; cond2: CI[-.45; .19]
+
+# regression 2 (legit ~ condition + orgaeff)
+
+# regression 3 (support ~ condition + orgaeff + legit)
+
