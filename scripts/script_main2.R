@@ -396,7 +396,7 @@ outliers_support_stereo # overlaps with outliers above --> those that drive supp
 
 source("scripts/process_function.R")
 
-## mediation analyses (option mcx = 3 automatic Helmert contrast coding; modelbt = 1 robust measures)
+## mediation analyses (option mcx = 3 automatic Helmert contrast coding; modelbt = 1 robust measures)----
 
 # orgaeff = M1
 
@@ -537,9 +537,62 @@ intersect(noutliers1, noutliers2) # 294
 intersect(noutliers1, noutliers3) # 58, 71, 184
 intersect(noutliers2, noutliers3) # 165
 
-## moderation analysis (center = 1: mean-centering all mediators and moderator)
+## moderation analysis (center = 1: mean-centering all mediators and moderator)----
 
 mod_orgaeff <- process (data=main2_sub_numcond,y="support",x="condition",m= c("orgaeff", "legit"),w="selfcat",modelbt = 1, mcx = 3, center = 1,model=89, boot = 10000, plot=1, seed=09922)
+
+# manual centring orgaeff, stereo, legit and selfcat
+main2_sub_numfact <- main2_sub_numfact %>%
+  mutate(cselfcat = scale(selfcat, scale = FALSE),
+         corgaeff = scale(orgaeff, scale = FALSE),
+         clegit = scale(legit, scale = FALSE),
+         cstereo = scale(stereo, scale= FALSE))
+
+# regression 3 (support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat; 
+# regressions 1 and 2, see above)
+support_cond_orgaeff_legit_selfcat <- lm(support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat, data = main2_sub_numfact)
+summary(support_cond_orgaeff_legit_selfcat)
+
+support_cond_orgaeff_legit_selfcat_cooksd <- cooks.distance(support_cond_orgaeff_legit_selfcat)
+
+plot(support_cond_orgaeff_legit_selfcat_cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance") +  # plot cook's distance
+  abline(h = 4*mean(support_cond_orgaeff_legit_selfcat_cooksd, na.rm=T), col="red") + # add cutoff line
+  text(x=1:length(support_cond_orgaeff_legit_selfcat_cooksd)+1, y=support_cond_orgaeff_legit_selfcat_cooksd, labels=ifelse(support_cond_orgaeff_legit_selfcat_cooksd>4*mean(support_cond_orgaeff_legit_selfcat_cooksd, na.rm=T),names(support_cond_orgaeff_legit_selfcat_cooksd),""), col="red")  # add labels
+
+influential <- as.numeric(names(support_cond_orgaeff_legit_selfcat_cooksd)[support_cond_orgaeff_legit_selfcat_cooksd > 4*mean(support_cond_orgaeff_legit_selfcat_cooksd, na.rm=T)])  # influential row numbers
+head(main2_sub_numfact[influential, ], n = 30)  # identifying outliers 
+
+# 13 outliers: ID 6, 22, 71, 154, 184, 189, 237, 263, 322, 328, 371, 418, 428
+
+car::outlierTest(support_cond_orgaeff_legit_selfcat) # most extreme outliers: ID 184 (control cond, man, 45y, centre, despite high scores, only support of 1) and 237 (control cond, woman, 61y, right, despite moderate to high scores, only support of 2)
+
+# run again without outliers 
+
+noutliers4 <- c("6", "22", "71", "154", "184", "189", "237", "263", "322", "328", "371", "418", "428")
+
+main2_sub_numfact_noutliers4 <- main2_sub_numfact %>%
+  filter(!id %in% noutliers4)
+
+support_cond_orgaeff_legit_selfcat_nout <- lm(support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat, data = main2_sub_numfact_noutliers4)
+summary(support_cond_orgaeff_legit_selfcat_nout) # condition 1 turns marginal sign., interaction condition1*selfcat now marginal sign.
+
+# robust regression 3
+
+support_cond_orgaeff_legit_selfcat_rob <- lmrob(support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat,data = main2_sub_numfact)
+summary(support_cond_orgaeff_legit_selfcat_rob) # condition1 turns marginal sign., interaction condition1*selfcat now n.s.
+# condition1: b = .21, p = .06; condition2: b = -.10, p = .34; corgaeff: b = .06, p = .17; clegit: b = .42, p < .001; cselfcat: b = .61, p < .001
+# condition1*cselfcat: b = .09, p = .09; condition2*selfcat: b = -.04, p = .46; corgaeff*cselfcat: b = .01, p = .50; 
+# clegit*cselfcat: b = .16, p < .001
+confint(support_cond_orgaeff_legit_selfcat_rob) # condition1: CI [-.01; .44]; condition2: CI [-.30; .10]; corgaeff: CI [-.02; .14];
+# clegit: CI [.33; .51]; condition1*cselfcat: CI [-.01; .20]; condition2*cselfcat: CI [-.14; .06]; corgaeff*cselfcat: CI [-.03; .05];
+# clegit*cselfcat: CI [.13; .20]
+
+# overall 45 outliers (7 overlapp across vectors)
+intersect(noutliers1, noutliers2) # 294
+intersect(noutliers1, noutliers4) # 6, 71, 184, 328, 371, 428
+intersect(noutliers2, noutliers4) # none 
+
+# USE ROBUST REGRESSION HERE AND ALSO ABOVE?
 
 
 
