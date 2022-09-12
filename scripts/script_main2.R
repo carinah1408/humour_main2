@@ -592,7 +592,13 @@ intersect(noutliers1, noutliers2) # 294
 intersect(noutliers1, noutliers4) # 6, 71, 184, 328, 371, 428
 intersect(noutliers2, noutliers4) # none 
 
-# USE ROBUST REGRESSION HERE AND ALSO ABOVE?
+# inspection whether found outliers that affected regression (and that cause robust regression to dimish the sign. effect of condition1 
+# and the interaction with self-cat) overlap with the multivariate ones driving support intention based on perceived legitimacy and self-cat
 
+intersect(outliers_legit_support, noutliers4) # eight (out of 13) outliers overlap: IDs "22"  "71"  "154" "184" "263" "322" "371" "428"
+
+# stereo = M1
+
+med_stereo <- process(data = main2_sub_numcond, y = "support", x = "condition", m = c("stereo", "legit"), modelbt =1, mcx = 3, total = 1, model = 6, boot = 10000, seed = 12922) 
 
 
