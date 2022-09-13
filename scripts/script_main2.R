@@ -601,4 +601,23 @@ intersect(outliers_legit_support, noutliers4) # eight (out of 13) outliers overl
 
 med_stereo <- process(data = main2_sub_numcond, y = "support", x = "condition", m = c("stereo", "legit"), modelbt =1, mcx = 3, total = 1, model = 6, boot = 10000, seed = 12922) 
 
+#...
+
+
+
+
+
+## not pre-registred analyses----
+
+# moderation of condition --> legitimacy, W = selfcat
+mod_orgaeff2 <- process (data=main2_sub_numcond,y="legit",x="condition",w="selfcat",modelbt = 1, mcx = 3, center = 1, model=1, boot = 10000, plot=1, seed=13922)
+
+
+# moderation of condition --> legitimacy, W = orgaeff
+mod_orgaeff3 <- process (data=main2_sub_numcond,y="legit",x="condition",w="orgaeff",modelbt = 1, mcx = 3, center = 1,model=1, boot = 10000, plot=1, seed=13922)
+mod_orgaeff3 <- process (data=main2_sub_numcond,y="support",x="condition",m = "legit", modelbt = 1, mcx = 3, center = 1,model=4, boot = 10000, plot=1, seed=13922)
+
+
+
+
 
