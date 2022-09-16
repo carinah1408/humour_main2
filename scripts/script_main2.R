@@ -264,7 +264,9 @@ TukeyHSD(orgaeff.anova) # sign. between exp and control but not between exp
 
 leveneTest(orgaeff ~ condition, data = main2_sub) # n.s.
 
-orgaeff_condition <- main2_sub%>% select(condition, orgaeff) %>% plot()
+orgaeff_condition <- main2_sub%>% select(condition, orgaeff) %>% 
+  plot(xlab="Experimental condition", ylab="Organisational efficacy", sub = "0 = Control; 1 = Disruption (no mocking); 2 = Disruption (mocking)") 
+ 
 
 stereo.anova <- aov(stereo ~ condition, data = main2_sub) # sign.
 summary(stereo.anova)
@@ -279,14 +281,16 @@ summary(legit.anova)
 
 leveneTest(legit ~ condition, data = main2_sub) # n.s.
 
-legit_condition <- main2_sub%>% select(condition, legit) %>% plot()
+legit_condition <- main2_sub%>% select(condition, legit) %>% 
+  plot(xlab="Experimental condition", ylab="Legitimacy", sub = "0 = Control; 1 = Disruption (no mocking); 2 = Disruption (mocking)")
 
 support.anova <- aov(support ~ condition, data = main2_sub) # n.s.
 summary(support.anova) # n.s.
 
 leveneTest(support ~ condition, data = main2_sub) # n.s.
 
-support_condition <- main2_sub%>% select(condition, support) %>% plot() 
+support_condition <- main2_sub%>% select(condition, support) %>% 
+  plot(xlab="Experimental condition", ylab="Support intention", sub = "0 = Control; 1 = Disruption (no mocking); 2 = Disruption (mocking)") 
 
 ### categorical relationships
 
@@ -539,8 +543,27 @@ intersect(noutliers2, noutliers3) # 165
 
 ## moderation analysis (center = 1: mean-centering all mediators and moderator)----
 
-mod_orgaeff <- process (data=main2_sub_numcond,y="support",x="condition",m= c("orgaeff", "legit"),w="selfcat",modelbt = 1, mcx = 3, center = 1,model=89, boot = 10000, plot=1, seed=09922)
+mod_orgaeff <- process (data=main2_sub_numcond,y="support",x="condition",m= c("orgaeff", "legit"),w="selfcat",modelbt = 1, mcx = 3, center = 1,model=89, jn = 1, boot = 10000, plot=1, seed=09922)
 
+# visualisation (jn output)
+
+cselfcat_jn <- c(-2.4802,-2.1802, -1.9492,-1.8802,-1.5802,1.2802,-0.9802,-0.6802,-0.3802,-0.0802,0.2198, 
+                0.5198, 0.8198,1.1198,1.4198, 1.7198, 2.0198,2.3198,2.6198,2.9198,3.2198,3.5198)  
+selfcat_jn <- c(1, 1.3, 1.5310, 1.6, 1.9, 2.2, 2.5, 2.8, 3.1, 3.4, 3.7, 4, 4.3, 4.6, 4.9, 5.2, 5.5, 5.8, 6.1, 6.4, 6.7, 7)
+ceffect_jn <- c(0.0572, 0.0936, 0.1216, 0.1299 , 0.1663, 0.2027, 0.2391, 0.2754, 0.3118, 0.3482, 0.3845, 
+               0.4209, 0.4573, 0.4937, 0.5300, 0.5664, 0.6028, 0.6391, 0.6755, 0.7119, 0.7483, 0.7846)
+llci_jn <- c(-0.0794,-0.0343,0.0000, 0.0101,0.0536,0.0960, 0.1371,0.1768, 0.2148, 0.2510, 0.2856,0.3186,0.3501, 0.3804,0.4096, 0.4378, 0.4653,0.4923,0.5187, 0.5447, 0.5704, 0.5958)                                                                                                
+ulci_jn <- c(0.1938, 0.2214, 0.2431, 0.2497, 0.2790, 0.3093, 0.3410, 0.3741, 0.4088, 0.4453,0.4834, 0.5232, 0.5644, 0.6069, 0.6505, 0.6950, 0.7402, 0.7860, 0.8323, 0.8791, 0.9261, 0.9735)
+
+plot(x=selfcat_jn,y=ceffect_jn,type="l",pch=19,ylim=c(0, 1),xlim=c(1,7),lwd=3,
+     ylab="Conditional effect of legitimacy",
+     xlab="Self-categorisation(W)",col="red")
+points(selfcat_jn,llci_jn,lwd=2,lty=2,type="l",col="black")
+points(selfcat_jn,ulci_jn,lwd=2,lty=2,type="l",col="black")
+abline(h=0,untf = FALSE,lty=3,lwd=1,col="red")
+abline(v=4.971,untf=FALSE,lty=3,lwd=1)
+text(4.971,-2.1,"4.971",cex=0.8)
+                   
 # manual centring orgaeff, stereo, legit and selfcat
 main2_sub_numfact <- main2_sub_numfact %>%
   mutate(cselfcat = scale(selfcat, scale = FALSE),
