@@ -572,7 +572,7 @@ main2_sub_numfact <- main2_sub_numfact %>%
 
 # regression 3 (support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat; 
 # regressions 1 and 2, see above)
-support_cond_orgaeff_legit_selfcat <- lm(support ~ condition + orgaeff + legit + selfcat + condition*selfcat + orgaeff*selfcat + legit*selfcat, data = main2_sub_numfact)
+support_cond_orgaeff_legit_selfcat <- lm(support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat, data = main2_sub_numfact)
 summary(support_cond_orgaeff_legit_selfcat)
 
 # visualisation other interactions
@@ -580,8 +580,10 @@ library(sjPlot)
 library(sjmisc)
 library(ggplot2)
 
-plot_model(support_cond_orgaeff_legit_selfcat, type = "pred", terms = c("legit", "selfcat"), axis.title = c("Perceived legitmacy","Support intention"), legend.title = "Levels of social identificaiton", title = "")
-plot_model(support_cond_orgaeff_legit_selfcat, type = "pred", terms = c("selfcat", "condition"), axis.title = c("Social identificaiton","Support intention"), legend.title = "Experimental conditions", title = "")
+# run regression 3 again without centring (does not work with plot_model function)
+support_cond_orgaeff_legit_selfcat2 <- lm(support ~ condition + orgaeff + legit + selfcat + condition*selfcat + orgaeff*selfcat + legit*selfcat, data = main2_sub_numfact)
+plot_model(support_cond_orgaeff_legit_selfcat2, type = "pred", terms = c("legit", "selfcat"), axis.title = c("Perceived legitmacy","Support intention"), legend.title = "Levels of social identificaiton", title = "")
+plot_model(support_cond_orgaeff_legit_selfcat2, type = "pred", terms = c("selfcat", "condition"), axis.title = c("Social identificaiton","Support intention"), legend.title = "Experimental conditions", title = "")
 
 # plot outliers
 support_cond_orgaeff_legit_selfcat_cooksd <- cooks.distance(support_cond_orgaeff_legit_selfcat)
