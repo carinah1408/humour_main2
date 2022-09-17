@@ -167,7 +167,6 @@ main2_sub <- main2_sub %>% # create new variable "selfcat"
   )
 
 library(lavaan) # validity
-library(semPlot)
 library(lm.beta)
 
 legit.cfa <- 'legit.cfa =~ legit_1 + legit_2 + legit_3'
@@ -563,7 +562,7 @@ points(selfcat_jn,ulci_jn,lwd=2,lty=2,type="l",col="black")
 abline(h=0,untf = FALSE,lty=3,lwd=1,col="red")
 abline(v=4.971,untf=FALSE,lty=3,lwd=1)
 text(4.971,-2.1,"4.971",cex=0.8)
-                   
+
 # manual centring orgaeff, stereo, legit and selfcat
 main2_sub_numfact <- main2_sub_numfact %>%
   mutate(cselfcat = scale(selfcat, scale = FALSE),
@@ -573,9 +572,18 @@ main2_sub_numfact <- main2_sub_numfact %>%
 
 # regression 3 (support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat; 
 # regressions 1 and 2, see above)
-support_cond_orgaeff_legit_selfcat <- lm(support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat, data = main2_sub_numfact)
+support_cond_orgaeff_legit_selfcat <- lm(support ~ condition + orgaeff + legit + selfcat + condition*selfcat + orgaeff*selfcat + legit*selfcat, data = main2_sub_numfact)
 summary(support_cond_orgaeff_legit_selfcat)
 
+# visualisation other interactions
+library(sjPlot)
+library(sjmisc)
+library(ggplot2)
+
+plot_model(support_cond_orgaeff_legit_selfcat, type = "pred", terms = c("legit", "selfcat"), axis.title = c("Perceived legitmacy","Support intention"), legend.title = "Levels of social identificaiton", title = "")
+plot_model(support_cond_orgaeff_legit_selfcat, type = "pred", terms = c("selfcat", "condition"), axis.title = c("Social identificaiton","Support intention"), legend.title = "Experimental conditions", title = "")
+
+# plot outliers
 support_cond_orgaeff_legit_selfcat_cooksd <- cooks.distance(support_cond_orgaeff_legit_selfcat)
 
 plot(support_cond_orgaeff_legit_selfcat_cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance") +  # plot cook's distance
