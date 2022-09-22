@@ -580,13 +580,13 @@ llci_jn <- c(-0.0794,-0.0343,0.0000, 0.0101,0.0536,0.0960, 0.1371,0.1768, 0.2148
 ulci_jn <- c(0.1938, 0.2214, 0.2431, 0.2497, 0.2790, 0.3093, 0.3410, 0.3741, 0.4088, 0.4453,0.4834, 0.5232, 0.5644, 0.6069, 0.6505, 0.6950, 0.7402, 0.7860, 0.8323, 0.8791, 0.9261, 0.9735)
 
 plot(x=selfcat_jn,y=ceffect_jn,type="l",pch=19,ylim=c(0, 1),xlim=c(1,7),lwd=3,
-     ylab="Conditional effect of legitimacy",
+     ylab="Conditional effect of legitimacy on support intention",
      xlab="Self-categorisation(W)",col="red")
 points(selfcat_jn,llci_jn,lwd=2,lty=2,type="l",col="black")
 points(selfcat_jn,ulci_jn,lwd=2,lty=2,type="l",col="black")
 abline(h=0,untf = FALSE,lty=3,lwd=1,col="red")
-abline(v=4.971,untf=FALSE,lty=3,lwd=1)
-text(4.971,-2.1,"4.971",cex=0.8)
+abline(v=1.3,untf=FALSE,lty=3,lwd=1)
+text(1.3,"1.3",cex=0.8)
 
 # creating dataset for interaction plot selfcat, support, condition
 condition_int <- c(1.0000, 2.0000, 3.0000, 1.0000, 2.0000, 3.0000, -1.0000, 2.0000, 3.0000)
