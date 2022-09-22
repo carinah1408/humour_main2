@@ -544,6 +544,31 @@ intersect(noutliers2, noutliers3) # 165
 
 mod_orgaeff <- process (data=main2_sub_numcond,y="support",x="condition",m= c("orgaeff", "legit"),w="selfcat",modelbt = 1, mcx = 3, center = 1,model=89, jn = 1, boot = 10000, plot=1, seed=09922)
 
+# visualiation
+
+# creating dataset for interaction plot legit, support, selfcat
+legit_int <- c(-1.2440, 0.0894, 1.4227, -1.2440, 0.0894, 1.4227, -1.2440, 0.0894, 1.4227)
+selfcat_int <- c(-1.4802, -1.4802, -1.4802, 0.0198, 0.0198, 0.0198, 1.5198, 1.5198, 1.5198)
+support_int <- c(1.3877, 1.6256, 1.8636, 2.0559, 2.5363, 3.0167, 2.7240, 3.4469, 4.1698)
+
+df <- data.frame(legit_int, selfcat_int, support_int)
+
+df$selfcat_int <- factor(x = df$selfcat_int, labels = c("16th percentile", "50th percentile", "84th percentile"))
+df$legit_int <- factor(x = df$legit_int, labels = c("-1SD", "Mean", "+1SD"))
+
+interaction.plot(x.factor = df$legit_int, 
+                 trace.factor = df$selfcat_int,
+                 response = df$support_int,
+                 fun = median,
+                 legend = T,
+                 ylab = "Support intention",
+                 xlab = "Perceived legitimacy",
+                 trace.label = "Self-categorisation",
+                 col = c("blue", "red", "green"),
+                 lyt = 1,
+                 lwd = 3
+)
+
 # visualisation (jn output)
 
 cselfcat_jn <- c(-2.4802,-2.1802, -1.9492,-1.8802,-1.5802,1.2802,-0.9802,-0.6802,-0.3802,-0.0802,0.2198, 
@@ -562,6 +587,28 @@ points(selfcat_jn,ulci_jn,lwd=2,lty=2,type="l",col="black")
 abline(h=0,untf = FALSE,lty=3,lwd=1,col="red")
 abline(v=4.971,untf=FALSE,lty=3,lwd=1)
 text(4.971,-2.1,"4.971",cex=0.8)
+
+# creating dataset for interaction plot selfcat, support, condition
+condition_int <- c(1.0000, 2.0000, 3.0000, 1.0000, 2.0000, 3.0000, -1.0000, 2.0000, 3.0000)
+selfcat_int <- c(-1.4802, -1.4802, -1.4802, 0.0198, 0.0198, 0.0198, 1.5198, 1.5198, 1.5198)
+support_int2 <- c(1.5809, 1.6129, 1.6351, 2.3236, 2.6188, 2.5677, 3.0663, 3.6248, 3.5004)
+
+df2 <- data.frame(condition_int, selfcat_int, support_int2)
+df2$selfcat_int <- factor(x = df2$selfcat_int, labels = c("16th percentile", "50th percentile", "84th percentile"))
+df2$condition_int <- factor(x = df$condition_int, labels = c("Control", "Experimental1 (no mocking)", "Experimental 2 (mocking"))
+
+interaction.plot(x.factor = df2$selfcat_int, 
+                 trace.factor = df2$condition_int,
+                 response = df2$support_int2,
+                 fun = median,
+                 legend = T,
+                 ylab = "Support intention",
+                 xlab = "Self-categorisation",
+                 trace.label = "Experimental condition",
+                 col = c("blue", "red", "green"),
+                 lyt = 1,
+                 lwd = 3
+)
 
 # manual centring orgaeff, stereo, legit and selfcat
 main2_sub_numfact <- main2_sub_numfact %>%
