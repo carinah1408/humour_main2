@@ -464,7 +464,7 @@ summary(orgaeff_cond_nout) # no significant or valence changes: cond1: b = -1.34
 
 library(robustbase)
 orgaeff_cond_rob <- lmrob(orgaeff ~ condition, data = main2_sub_numfact)
-summary(orgaeff_cond_rob) # no significant or valence changes: cond1: b = -1.32, p < .001; cond2: b = -.13, p = .42
+summary(orgaeff_cond_rob) # no significant or valence changes: cond1: b = -1.32, p < .001; cond2: b = -.13, p = .418
 confint(orgaeff_cond_rob) # cond1: CI[-1.57; -1.07]; cond2: CI[-.45; .19]
 
 # regression 2 (legit ~ condition + orgaeff)
@@ -498,7 +498,7 @@ summary(legit_cond_orgaeff_nout) # no significant or valence changes: cond1: b =
 # robust regression 2
 
 legit_cond_orgaeff_rob <- lmrob(legit ~ condition + orgaeff, data = main2_sub_numfact)
-summary(legit_cond_orgaeff_rob) # no significant or valence changes: cond1: b = .63, p < .001; cond2: b = .35, p = .01; orgaeff: b = .60, p < .001
+summary(legit_cond_orgaeff_rob) # no significant or valence changes: cond1: b = .63, p < .001; cond2: b = .35, p = .011; orgaeff: b = .60, p < .001
 confint(legit_cond_orgaeff_rob) # cond1: CI[.36; .91]; cond2: CI[.08; .62]; orgaeff: CI[.50; .71]
 
 # regression 3 (support ~ condition + orgaeff + legit)
@@ -532,7 +532,7 @@ summary(support_cond_orgaeff_legit_nout) # condition2 turns negative but stays n
 # robust regression 3
 
 support_cond_orgaeff_legit_rob <- lmrob(support ~ condition + orgaeff + legit, data = main2_sub_numfact)
-summary(support_cond_orgaeff_legit_rob) # condition2 turns negative but stays n.s.: cond1: b = .45, p = .00; cond2: b = -.02, p = .87; orgaeff: b = .15, p = .02; legit: b = .85, p < .001
+summary(support_cond_orgaeff_legit_rob) # condition2 turns negative but stays n.s.: cond1: b = .45, p = .003; cond2: b = -.02, p = .873; orgaeff: b = .15, p = .017; legit: b = .85, p < .001
 confint(support_cond_orgaeff_legit_rob) # cond1: CI[.16; .75]; cond2: CI[-.31; .26]; orgaeff: CI[.03;.27]; legit: CI[.74; .96]
 
 # overall 51 outliers (5 overlapp across vectors)
@@ -660,8 +660,8 @@ summary(support_cond_orgaeff_legit_selfcat_nout) # condition 1 turns marginal si
 
 support_cond_orgaeff_legit_selfcat_rob <- lmrob(support ~ condition + corgaeff + clegit + cselfcat + condition*cselfcat + corgaeff*cselfcat + clegit*cselfcat,data = main2_sub_numfact)
 summary(support_cond_orgaeff_legit_selfcat_rob) # condition1 turns marginal sign., interaction condition1*selfcat now n.s.
-# condition1: b = .21, p = .06; condition2: b = -.10, p = .34; corgaeff: b = .06, p = .17; clegit: b = .42, p < .001; cselfcat: b = .61, p < .001
-# condition1*cselfcat: b = .09, p = .09; condition2*selfcat: b = -.04, p = .46; corgaeff*cselfcat: b = .01, p = .50; 
+# condition1: b = .21, p = .061; condition2: b = -.10, p = .339; corgaeff: b = .06, p = .172; clegit: b = .42, p < .001; cselfcat: b = .61, p < .001
+# condition1*cselfcat: b = .09, p = .086; condition2*selfcat: b = -.04, p = .460; corgaeff*cselfcat: b = .01, p = .500; 
 # clegit*cselfcat: b = .16, p < .001
 confint(support_cond_orgaeff_legit_selfcat_rob) # condition1: CI [-.01; .44]; condition2: CI [-.30; .10]; corgaeff: CI [-.02; .14];
 # clegit: CI [.33; .51]; condition1*cselfcat: CI [-.01; .20]; condition2*cselfcat: CI [-.14; .06]; corgaeff*cselfcat: CI [-.03; .05];
