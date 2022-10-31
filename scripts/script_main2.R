@@ -268,9 +268,11 @@ outliers_support #IDs: 35, 42, 71, 115, 138, 151, 165, 263, 289, 293, 301, 346, 
 # (13 out of 15 have a selfcat score of 7, one of 6, and one of 4.5)
 
 ## comparison variables across conditions----
+library(effectsize)
 
 orgaeff.anova <- aov(orgaeff ~ condition, data = main2_sub) # sign.
 summary(orgaeff.anova)
+eta_squared(orgaeff.anova, partial = TRUE)
 TukeyHSD(orgaeff.anova) # sign. between exp and control but not between exp
 
 leveneTest(orgaeff ~ condition, data = main2_sub) # n.s.
@@ -281,6 +283,7 @@ orgaeff_condition <- main2_sub%>% select(condition, orgaeff) %>%
 
 stereo.anova <- aov(stereo ~ condition, data = main2_sub) # sign.
 summary(stereo.anova)
+eta_squared(stereo.anova, partial = TRUE)
 TukeyHSD(stereo.anova) # sign. between exp and control but not between exp
 
 leveneTest(stereo ~ condition, data = main2_sub) # n.s.
@@ -289,6 +292,7 @@ stereo_condition <- main2_sub%>% select(condition, stereo) %>% plot()
 
 legit.anova <- aov(legit ~ condition, data = main2_sub) # n.s.
 summary(legit.anova)
+eta_squared(legit.anova, partial = TRUE)
 
 leveneTest(legit ~ condition, data = main2_sub) # n.s.
 
@@ -297,6 +301,7 @@ legit_condition <- main2_sub%>% select(condition, legit) %>%
 
 support.anova <- aov(support ~ condition, data = main2_sub) # n.s.
 summary(support.anova) # n.s.
+eta_squared(support.anova, partial = TRUE)
 
 leveneTest(support ~ condition, data = main2_sub) # n.s.
 
@@ -552,21 +557,25 @@ intersect(noutliers1, noutliers2) # 294
 intersect(noutliers1, noutliers3) # 58, 71, 184
 intersect(noutliers2, noutliers3) # 165
 
-## moderation analysis (center = 1: mean-centering all mediators and moderator)----
+## moderation analysis (center = 1, 2: mean-centering all mediators and moderator)----
 
-mod_orgaeff <- process (data=main2_sub_numcond,y="support",x="condition",m= c("orgaeff", "legit"),w="selfcat",modelbt = 1, mcx = 3, center = 1,model=89, jn = 1, boot = 10000, plot=1, seed=09922)
+#OLD mod_orgaeff <- process (data=main2_sub_numcond,y="support",x="condition",m= c("orgaeff", "legit"),w="selfcat",modelbt = 1, mcx = 3, center = 1,model=89, jn = 1, boot = 10000, plot=1, seed=09922)
+#NEW
+process(data = main2_sub_numcond, y = "support", x = "condition", m = c("orgaeff", "legit"), w = "selfcat", modelbt = 1, mcx = 3, center = 2, model = 89, jn = 1, boot = 10000, plot = 1, moments = 1, seed = 311022)
+process(data = main2_sub_numcond, y = "support", x = "condition", m = c("orgaeff", "legit"), w = "selfcat", modelbt = 1, mcx = 3, model = 89, jn = 1, boot = 10000, plot = 1, moments = 1, seed = 311022)
 
 # visualiation
 
 # creating dataset for interaction plot legit, support, selfcat
-legit_int <- c(-1.2440, 0.0894, 1.4227, -1.2440, 0.0894, 1.4227, -1.2440, 0.0894, 1.4227)
-selfcat_int <- c(-1.4802, -1.4802, -1.4802, 0.0198, 0.0198, 0.0198, 1.5198, 1.5198, 1.5198)
-support_int <- c(1.3877, 1.6256, 1.8636, 2.0559, 2.5363, 3.0167, 2.7240, 3.4469, 4.1698)
+
+legit_int <- c(-1.236, 0.0000, 1.3638, -1.236, 0.0000, 1.3638, -1.236, 0.0000, 1.3638)
+selfcat_int <- c(-1.6714, -1.6714, -1.6714, 0.0000, 0.0000, 0.0000, 1.6714,1.6714, 1.6714)
+support_int <- c(1.2840, 1.4957, 1.7074, 2.0042, 2.4923, 2.9803, 2.7244, 3.4888, 4.2532)
 
 df <- data.frame(legit_int, selfcat_int, support_int)
 
-df$selfcat_int <- factor(x = df$selfcat_int, labels = c("16th percentile", "50th percentile", "84th percentile"))
-df$legit_int <- factor(x = df$legit_int, labels = c("-1SD", "Mean", "+1SD"))
+df$selfcat_int <- factor(x = df$selfcat_int, labels = c("-1SD", "Mean", "+1SD"))
+df$legit_int <- factor(x = df$legit_int)
 
 interaction.plot(x.factor = df$legit_int, 
                  trace.factor = df$selfcat_int,
@@ -575,25 +584,26 @@ interaction.plot(x.factor = df$legit_int,
                  legend = T,
                  ylab = "Support intention",
                  xlab = "Perceived legitimacy",
-                 trace.label = "Self-categorisation",
+                 trace.label = "Social identification",
                  col = c("blue", "red", "green"),
                  lyt = 1,
                  lwd = 3
 )
+
 
 # visualisation (jn output)
 
 cselfcat_jn <- c(-2.4802,-2.1802, -1.9492,-1.8802,-1.5802,1.2802,-0.9802,-0.6802,-0.3802,-0.0802,0.2198, 
                 0.5198, 0.8198,1.1198,1.4198, 1.7198, 2.0198,2.3198,2.6198,2.9198,3.2198,3.5198)  
 selfcat_jn <- c(1, 1.3, 1.5310, 1.6, 1.9, 2.2, 2.5, 2.8, 3.1, 3.4, 3.7, 4, 4.3, 4.6, 4.9, 5.2, 5.5, 5.8, 6.1, 6.4, 6.7, 7)
-ceffect_jn <- c(0.0572, 0.0936, 0.1216, 0.1299 , 0.1663, 0.2027, 0.2391, 0.2754, 0.3118, 0.3482, 0.3845, 
+effect_jn <- c(0.0572, 0.0936, 0.1216, 0.1299 , 0.1663, 0.2027, 0.2391, 0.2754, 0.3118, 0.3482, 0.3845, 
                0.4209, 0.4573, 0.4937, 0.5300, 0.5664, 0.6028, 0.6391, 0.6755, 0.7119, 0.7483, 0.7846)
 llci_jn <- c(-0.0794,-0.0343,0.0000, 0.0101,0.0536,0.0960, 0.1371,0.1768, 0.2148, 0.2510, 0.2856,0.3186,0.3501, 0.3804,0.4096, 0.4378, 0.4653,0.4923,0.5187, 0.5447, 0.5704, 0.5958)                                                                                                
 ulci_jn <- c(0.1938, 0.2214, 0.2431, 0.2497, 0.2790, 0.3093, 0.3410, 0.3741, 0.4088, 0.4453,0.4834, 0.5232, 0.5644, 0.6069, 0.6505, 0.6950, 0.7402, 0.7860, 0.8323, 0.8791, 0.9261, 0.9735)
 
-plot(x=selfcat_jn,y=ceffect_jn,type="l",pch=19,ylim=c(0, 1),xlim=c(1,7),lwd=3,
+plot(x=selfcat_jn,y=effect_jn,type="l",pch=19,ylim=c(0, 1),xlim=c(1,7),lwd=3,
      ylab="Conditional effect of legitimacy on support intention",
-     xlab="Self-categorisation(W)",col="red")
+     xlab="Social identification(W)",col="red")
 points(selfcat_jn,llci_jn,lwd=2,lty=2,type="l",col="black")
 points(selfcat_jn,ulci_jn,lwd=2,lty=2,type="l",col="black")
 abline(h=0,untf = FALSE,lty=3,lwd=1,col="red")
@@ -601,13 +611,14 @@ abline(v=1.3,untf=FALSE,lty=3,lwd=1)
 text(1.3,"1.3",cex=0.8)
 
 # creating dataset for interaction plot selfcat, support, condition
-condition_int <- c(1.0000, 2.0000, 3.0000, 1.0000, 2.0000, 3.0000, -1.0000, 2.0000, 3.0000)
-selfcat_int <- c(-1.4802, -1.4802, -1.4802, 0.0198, 0.0198, 0.0198, 1.5198, 1.5198, 1.5198)
-support_int2 <- c(1.5809, 1.6129, 1.6351, 2.3236, 2.6188, 2.5677, 3.0663, 3.6248, 3.5004)
+condition_int <- c(1.0000, 2.000, 3.0000, 1.0000, 2.0000, 3.0000, 1.0000, 2.0000, 3.0000)
+selfcat_int <- c(1.8088, 1.8088, 1.8088, 3.4802, 3.4802, 3.4802, 5.1515, 5.1515, 5.1515)
+support_int2 <- c(1.4863, 1.4847, 1.5162, 2.3138, 2.6055, 2.5554, 3.1413, 3.7264, 3.5946)
 
 df2 <- data.frame(condition_int, selfcat_int, support_int2)
-df2$selfcat_int <- factor(x = df2$selfcat_int, labels = c("16th percentile", "50th percentile", "84th percentile"))
-df2$condition_int <- factor(x = df$condition_int, labels = c("Control", "Experimental1 (no mocking)", "Experimental 2 (mocking"))
+df2$selfcat_int <- factor(x = df2$selfcat_int, labels = c("-1SD", "Mean", "+1SD"))
+df2$condition_int <- factor(x = df2$condition_int, labels = c("Control", "Experimental 1 (no mockery)", "Experimental 2 (mockery"))
+
 
 interaction.plot(x.factor = df2$selfcat_int, 
                  trace.factor = df2$condition_int,
@@ -615,12 +626,13 @@ interaction.plot(x.factor = df2$selfcat_int,
                  fun = median,
                  legend = T,
                  ylab = "Support intention",
-                 xlab = "Self-categorisation",
+                 xlab = "Social identification",
                  trace.label = "Experimental condition",
                  col = c("blue", "red", "green"),
                  lyt = 1,
                  lwd = 3
 )
+
 
 # manual centring orgaeff, stereo, legit and selfcat
 main2_sub_numfact <- main2_sub_numfact %>%
